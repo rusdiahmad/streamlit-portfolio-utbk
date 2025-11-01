@@ -50,7 +50,7 @@ if df is not None:
 
     st.write("Preview input:")
     st.dataframe(df.head())
-        if st.button("Run Prediction"):
+    if st.button("Run Prediction"):
             model = load_model()
             preds = model.predict(df)
             preds_df = pd.DataFrame(preds, columns=["PU","PK","PPU","PBM","LIND","LING"])
