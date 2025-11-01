@@ -88,27 +88,8 @@ elif page == "Visualisasi Data":
 # ---------------------------
 # 🤖 PREDIKSI NILAI
 # ---------------------------
-elif page == "Prediksi Nilai":
-    st.header("Prediksi Nilai UTBK per Subtes")
-    data_path = "NILAI_UTBK_ANGK_4.xlsx"  # file langsung di root repo
 
-    if os.path.exists(data_path):
-        df = pd.read_excel(data_path)
-    if df is not None:
-        model = load_model()
-        feature_cols = ['TO 1','TO 2','TO 3','TO 4','TO 5','TO 6','TO 7',
-                        'RATA- RATA TO 4 S.D 7','ESTIMASI RATA-RATA',
-                        'Rata-rata','Ranking','RUMPUN','JURUSAN/PRODI']
-        data_pred = df[feature_cols].dropna()
-        preds = model.predict(data_pred)
-        preds_df = pd.DataFrame(preds, columns=["PU","PK","PPU","PBM","LIND","LING"])
-        st.success("✅ Prediksi Berhasil")
-        st.dataframe(preds_df.head())
 
-        csv = preds_df.to_csv(index=False).encode('utf-8')
-        st.download_button("Download Hasil Prediksi (CSV)", csv, "prediksi_utbk.csv", "text/csv")
-    else:
-        st.warning("Data tidak tersedia untuk prediksi.")
 
 # ---------------------------
 # 👤 TENTANG SAYA
