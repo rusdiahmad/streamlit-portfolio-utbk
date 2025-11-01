@@ -32,7 +32,7 @@ import requests
 
 st.header("Data Nilai UTBK Otomatis dari GitHub")
 
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/<username>/<repo>/main/data/NILAI_UTBK_ANGK_4.xlsx"
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/<username>/<repo>/main/data/NILAI UTBK ANGK 4.xlsx"
 
 @st.cache_data
 def load_data():
