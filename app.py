@@ -25,7 +25,6 @@ GITHUB_RAW_URL = "https://raw.githubusercontent.com/<username>/<repo>/main/NILAI
 # ---------------------------
 # 🧠 Fungsi Muat Model dan Data
 # ---------------------------
-
 @st.cache_resource
 def load_model():
     with open("model_pipeline.pkl", "rb") as f:
@@ -68,24 +67,28 @@ menampilkan analisis dan prediksi **nilai UTBK per subtes** berdasarkan jurusan/
 # ---------------------------
 # 📈 VISUALISASI DATA
 # ---------------------------
+elif page == "Visualisasi Data":
+    st.header("Visualisasi Dataset Nilai UTBK")
 
+    data_path = "NILAI_UTBK_ANGK_4.xlsx"  # file langsung di root repo
 
-if page == "Data Viz":
-    st.header("Data Visualization")
-    data_path = "data/NILAI_UTBK_ANGK_4.xlsx"
+    if os.path.exists(data_path):
+        df = pd.read_excel(data_path)
+        st.success("✅ Dataset UTBK berhasil dimuat otomatis dari root folder GitHub!")
+        st.dataframe(df.head())
 
-if os.path.exists(data_path):
-    df = pd.read_excel(data_path)
-    st.success("✅ Dataset UTBK berhasil dimuat otomatis dari folder data/")
-    st.dataframe(df.head())
-else:
-    st.error("❌ Dataset belum ditemukan. Harap tambahkan file ke folder data/")
-
+        st.subheader("Distribusi Nilai UTBK per Subtes")
+        numeric_cols = ["PU", "PK", "PPU", "PBM", "LIND", "LING"]
+        for col in numeric_cols:
+            if col in df.columns:
+                st.bar_chart(df[col].dropna())
+    else:
+        st.error("❌ Dataset belum ditemukan di root folder GitHub. Pastikan nama file sama persis.")
 
 # ---------------------------
 # 🤖 PREDIKSI NILAI
 # ---------------------------
-if page == "Prediksi Nilai":
+elif page == "Prediksi Nilai":
     st.header("Prediksi Nilai UTBK per Subtes")
     df = load_data()
     if df is not None:
@@ -96,7 +99,7 @@ if page == "Prediksi Nilai":
         data_pred = df[feature_cols].dropna()
         preds = model.predict(data_pred)
         preds_df = pd.DataFrame(preds, columns=["PU","PK","PPU","PBM","LIND","LING"])
-        st.success("Prediksi Berhasil ✅")
+        st.success("✅ Prediksi Berhasil")
         st.dataframe(preds_df.head())
 
         csv = preds_df.to_csv(index=False).encode('utf-8')
@@ -119,4 +122,3 @@ Portofolio ini menampilkan kemampuan dalam:
 - Pembuatan model Machine Learning  
 - Implementasi Streamlit & deployment di cloud  
 """)
-
