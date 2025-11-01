@@ -85,7 +85,7 @@ else:
 # ---------------------------
 # 🤖 PREDIKSI NILAI
 # ---------------------------
-elif page == "Prediksi Nilai":
+if page == "Prediksi Nilai":
     st.header("Prediksi Nilai UTBK per Subtes")
     df = load_data()
     if df is not None:
