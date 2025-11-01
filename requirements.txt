@@ -1,7 +1,7 @@
-streamlit>=1.26.0
-pandas>=1.5.0
-numpy>=1.23.0
-cloudpickle>=2.2.0
+streamlit==1.39.0
+pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.4.2
+cloudpickle==3.0.0
 requests
 openpyxl
-scikit-learn==X.Y.Z
