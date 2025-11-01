@@ -88,7 +88,51 @@ elif page == "Visualisasi Data":
 # ---------------------------
 # 🤖 PREDIKSI NILAI
 # ---------------------------
+elif page == "Prediksi Nilai":
+    st.header("🤖 Prediksi Nilai UTBK per Subtes")
 
+    data_path = "NILAI_UTBK_ANGK_4.xlsx"
+    model_path = "model_pipeline.pkl"
+
+    if not os.path.exists(data_path):
+        st.error("❌ File dataset tidak ditemukan di root folder GitHub.")
+    elif not os.path.exists(model_path):
+        st.error("❌ File model (`model_pipeline.pkl`) tidak ditemukan di repo.")
+    else:
+        try:
+            df = pd.read_excel(data_path, sheet_name="DATABASE")
+            with open(model_path, "rb") as f:
+                model = pickle.load(f)
+
+            st.success("✅ Data dan model berhasil dimuat!")
+
+            # Kolom fitur yang digunakan untuk prediksi
+            feature_cols = ['TO 1','TO 2','TO 3','TO 4','TO 5','TO 6','TO 7',
+                            'RATA- RATA TO 4 S.D 7','ESTIMASI RATA-RATA',
+                            'Rata-rata','Ranking','RUMPUN','JURUSAN/PRODI']
+
+            missing_cols = [col for col in feature_cols if col not in df.columns]
+            if missing_cols:
+                st.error(f"Kolom berikut tidak ditemukan di dataset: {', '.join(missing_cols)}")
+            else:
+                data_pred = df[feature_cols].dropna()
+                preds = model.predict(data_pred)
+                preds_df = pd.DataFrame(preds, columns=["PU","PK","PPU","PBM","LIND","LING"])
+
+                st.subheader("📋 Hasil Prediksi (5 Data Pertama)")
+                st.dataframe(preds_df.head())
+
+                # Rata-rata hasil prediksi
+                st.subheader("📊 Rata-rata Prediksi per Subtes")
+                mean_scores = preds_df.mean().round(2)
+                st.bar_chart(mean_scores)
+
+                # Download hasil prediksi
+                csv = preds_df.to_csv(index=False).encode('utf-8')
+                st.download_button("💾 Download Hasil Prediksi (CSV)", csv, "prediksi_utbk.csv", "text/csv")
+
+        except Exception as e:
+            st.error(f"Terjadi kesalahan saat melakukan prediksi: {e}")
 
 
 # ---------------------------
