@@ -90,7 +90,10 @@ elif page == "Visualisasi Data":
 # ---------------------------
 elif page == "Prediksi Nilai":
     st.header("Prediksi Nilai UTBK per Subtes")
-    df = load_data()
+    data_path = "NILAI_UTBK_ANGK_4.xlsx"  # file langsung di root repo
+
+    if os.path.exists(data_path):
+        df = pd.read_excel(data_path)
     if df is not None:
         model = load_model()
         feature_cols = ['TO 1','TO 2','TO 3','TO 4','TO 5','TO 6','TO 7',
