@@ -48,8 +48,8 @@ if df is not None:
     st.success(f"Dataset berhasil dimuat! Jumlah baris: {df.shape[0]}")
     st.dataframe(df.head())
 
-        st.write("Preview input:")
-        st.dataframe(df.head())
+    st.write("Preview input:")
+    st.dataframe(df.head())
         if st.button("Run Prediction"):
             model = load_model()
             preds = model.predict(df)
