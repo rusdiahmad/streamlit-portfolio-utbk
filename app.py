@@ -1,79 +1,124 @@
-
 import streamlit as st
-import pandas as pd, numpy as np
-import pickle, os
-from sklearn.pipeline import Pipeline
+import pandas as pd
+import numpy as np
+import requests
+import io
+import pickle
+import os
 
-BASE_DIR = os.path.dirname(__file__)
-
+# ---------------------------
+# 🔧 KONFIGURASI DASAR
+# ---------------------------
 st.set_page_config(page_title="My Portfolio with Streamlit", layout="wide")
 
 st.title("My Portfolio with Streamlit")
-st.markdown("Portofolio dan aplikasi prediksi nilai UTBK per subtes untuk berbagai jurusan/prodi.")
+st.markdown("""
+Aplikasi portofolio berbasis Streamlit untuk menampilkan analisis dan prediksi nilai **UTBK per subtes dan jurusan/prodi**.
+""")
 
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Home","Upload & Predict","Visualisasi Data","Tentang Saya"])
+# ---------------------------
+# 🔗 URL DATASET dari GitHub
+# ---------------------------
+# Ganti URL ini dengan raw link file Excel kamu di GitHub
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/<username>/<repo>/main/NILAI_UTBK_ANGK_4.xlsx"
 
-model_path = os.path.join(BASE_DIR, "model_pipeline.pkl")
+# ---------------------------
+# 🧠 Fungsi Muat Model dan Data
+# ---------------------------
 
 @st.cache_resource
 def load_model():
-    with open(model_path, "rb") as f:
+    with open("model_pipeline.pkl", "rb") as f:
         return pickle.load(f)
-
-if page == "Home":
-    st.header("Selamat datang!")
-    st.write("Aplikasi ini dibuat sebagai portofolio untuk menampilkan analisis dan prediksi nilai UTBK.")
-
-elif page == "Upload & Predict":
-    st.header("Upload data peserta (CSV) untuk prediksi per subtes")
-    import io
-import requests
-
-st.header("Data Nilai UTBK Otomatis dari GitHub")
-
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/rusdiahmad/streamlit-portfolio-utbk/main/data/NILAI_UTBK_ANGK_4.xlsx"
 
 @st.cache_data
 def load_data():
-    r = requests.get(GITHUB_RAW_URL)
-    if r.status_code == 200:
-        return pd.read_excel(io.BytesIO(r.content), sheet_name="DATABASE")
-    else:
-        st.error("Gagal memuat data dari GitHub. Periksa URL atau nama file.")
+    try:
+        r = requests.get(GITHUB_RAW_URL)
+        if r.status_code != 200:
+            st.error(f"Gagal memuat data dari GitHub. Status code: {r.status_code}")
+            return None
+        df = pd.read_excel(io.BytesIO(r.content), sheet_name="DATABASE")
+        return df
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat memuat data: {e}")
         return None
 
-df = load_data()
-if df is not None:
-    st.success(f"Dataset berhasil dimuat! Jumlah baris: {df.shape[0]}")
-    st.dataframe(df.head())
+# ---------------------------
+# 🧭 SIDEBAR NAVIGASI
+# ---------------------------
+st.sidebar.title("Navigasi")
+page = st.sidebar.radio("Pilih Halaman:", [
+    "Beranda",
+    "Visualisasi Data",
+    "Prediksi Nilai",
+    "Tentang Saya"
+])
 
-    st.write("Preview input:")
-    st.dataframe(df.head())
-    if st.button("Run Prediction"):
-            model = load_model()
-            preds = model.predict(df)
-            preds_df = pd.DataFrame(preds, columns=["PU","PK","PPU","PBM","LIND","LING"])
-            st.success("Prediksi selesai")
-            st.dataframe(preds_df.head())
-            st.download_button("Download predictions CSV", preds_df.to_csv(index=False), "predictions.csv", "text/csv")
+# ---------------------------
+# 📊 BERANDA
+# ---------------------------
+if page == "Beranda":
+    st.header("Selamat Datang di Portofolio Rusdi Ahmad 🎓")
+    st.write("""
+Aplikasi ini merupakan implementasi tugas *Portfolio Building with Streamlit* yang
+menampilkan analisis dan prediksi **nilai UTBK per subtes** berdasarkan jurusan/prodi pilihan.
+""")
 
+# ---------------------------
+# 📈 VISUALISASI DATA
+# ---------------------------
 elif page == "Visualisasi Data":
-    st.header("Visualisasi dataset nilai UTBK")
-    csvp = os.path.join(BASE_DIR, "nilai_utbk_cleaned.csv")
-    if os.path.exists(csvp):
-        d = pd.read_csv(csvp)
-        st.write("Preview cleaned data:")
-        st.dataframe(d.head())
-        st.subheader("Distribusi salah satu subtes (PU)")
-        st.bar_chart(d["PU"].fillna(0).astype(float).head(100))
-    else:
-        st.info("Data bersih tidak ditemukan.")
+    st.header("Visualisasi Dataset Nilai UTBK")
 
+    df = load_data()
+    if df is not None:
+        st.success(f"Dataset berhasil dimuat! Jumlah baris: {df.shape[0]}")
+        st.dataframe(df.head())
+
+        st.subheader("Distribusi Nilai UTBK per Subtes")
+        numeric_cols = ["PU", "PK", "PPU", "PBM", "LIND", "LING"]
+        for col in numeric_cols:
+            if col in df.columns:
+                st.bar_chart(df[col].dropna())
+    else:
+        st.warning("Gagal memuat dataset. Pastikan URL dan nama sheet benar.")
+
+# ---------------------------
+# 🤖 PREDIKSI NILAI
+# ---------------------------
+elif page == "Prediksi Nilai":
+    st.header("Prediksi Nilai UTBK per Subtes")
+    df = load_data()
+    if df is not None:
+        model = load_model()
+        feature_cols = ['TO 1','TO 2','TO 3','TO 4','TO 5','TO 6','TO 7',
+                        'RATA- RATA TO 4 S.D 7','ESTIMASI RATA-RATA',
+                        'Rata-rata','Ranking','RUMPUN','JURUSAN/PRODI']
+        data_pred = df[feature_cols].dropna()
+        preds = model.predict(data_pred)
+        preds_df = pd.DataFrame(preds, columns=["PU","PK","PPU","PBM","LIND","LING"])
+        st.success("Prediksi Berhasil ✅")
+        st.dataframe(preds_df.head())
+
+        csv = preds_df.to_csv(index=False).encode('utf-8')
+        st.download_button("Download Hasil Prediksi (CSV)", csv, "prediksi_utbk.csv", "text/csv")
+    else:
+        st.warning("Data tidak tersedia untuk prediksi.")
+
+# ---------------------------
+# 👤 TENTANG SAYA
+# ---------------------------
 elif page == "Tentang Saya":
     st.header("Tentang Saya")
     st.markdown("""
 **Rusdi Ahmad**  
-Master's in Mathematics. Mathematics educator and AI/ML enthusiast.  
-Email: rusdiahmad979@gmail.com
+Magister Matematika • Pengajar & Peneliti AI/ML  
+Email: rusdiahmad979@gmail.com  
+
+Portofolio ini menampilkan kemampuan dalam:
+- Analisis data & visualisasi dengan Python  
+- Pembuatan model Machine Learning  
+- Implementasi Streamlit & deployment di cloud  
 """)
+
