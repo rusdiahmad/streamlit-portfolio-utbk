@@ -68,21 +68,19 @@ menampilkan analisis dan prediksi **nilai UTBK per subtes** berdasarkan jurusan/
 # ---------------------------
 # 📈 VISUALISASI DATA
 # ---------------------------
-elif page == "Visualisasi Data":
-    st.header("Visualisasi Dataset Nilai UTBK")
 
-    df = load_data()
-    if df is not None:
-        st.success(f"Dataset berhasil dimuat! Jumlah baris: {df.shape[0]}")
-        st.dataframe(df.head())
 
-        st.subheader("Distribusi Nilai UTBK per Subtes")
-        numeric_cols = ["PU", "PK", "PPU", "PBM", "LIND", "LING"]
-        for col in numeric_cols:
-            if col in df.columns:
-                st.bar_chart(df[col].dropna())
-    else:
-        st.warning("Gagal memuat dataset. Pastikan URL dan nama sheet benar.")
+if page == "Data Viz":
+    st.header("Data Visualization")
+    data_path = "data/NILAI_UTBK_ANGK_4.xlsx"
+
+if os.path.exists(data_path):
+    df = pd.read_excel(data_path)
+    st.success("✅ Dataset UTBK berhasil dimuat otomatis dari folder data/")
+    st.dataframe(df.head())
+else:
+    st.error("❌ Dataset belum ditemukan. Harap tambahkan file ke folder data/")
+
 
 # ---------------------------
 # 🤖 PREDIKSI NILAI
