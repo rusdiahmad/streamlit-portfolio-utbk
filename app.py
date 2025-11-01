@@ -27,9 +27,27 @@ if page == "Home":
 
 elif page == "Upload & Predict":
     st.header("Upload data peserta (CSV) untuk prediksi per subtes")
-    uploaded = st.file_uploader("Upload CSV (format kolom: TO 1, TO 2, ..., JURUSAN/PRODI, ...)", type=["csv"])
-    if uploaded is not None:
-        df = pd.read_csv(uploaded)
+    import io
+import requests
+
+st.header("Data Nilai UTBK Otomatis dari GitHub")
+
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/<username>/<repo>/main/data/NILAI_UTBK_ANGK_4.xlsx"
+
+@st.cache_data
+def load_data():
+    r = requests.get(GITHUB_RAW_URL)
+    if r.status_code == 200:
+        return pd.read_excel(io.BytesIO(r.content), sheet_name="DATABASE")
+    else:
+        st.error("Gagal memuat data dari GitHub. Periksa URL atau nama file.")
+        return None
+
+df = load_data()
+if df is not None:
+    st.success(f"Dataset berhasil dimuat! Jumlah baris: {df.shape[0]}")
+    st.dataframe(df.head())
+
         st.write("Preview input:")
         st.dataframe(df.head())
         if st.button("Run Prediction"):
